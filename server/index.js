@@ -1,29 +1,38 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+const app = express();
 const cors = require('cors');
 const { generateOTP, validateOTP } = require('./Otputils');
 
-const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+// Middleware
+app.use(express.json());  // Ensure you're parsing JSON bodies
+app.use(cors());          // Enable CORS
 
-let OTP_DB = {}; // Replace this with real DB in production
-const MEET_LINK = 'https://meet.google.com/abc-defg-hij'; // Admin's link
+// In-memory store for used OTPs (for demo purposes)
+const usedOTPs = new Set();
 
+// Generate OTP endpoint
 app.post('/generate', (req, res) => {
   const otp = generateOTP();
-  OTP_DB[otp] = { used: false };
-  res.json({ otp }); // Ideally, send via email or UI
+  usedOTPs.add(otp);  // Mark the OTP as used
+  console.log(`Generated OTP: ${otp}`);
+  res.json({ otp });  // Send the OTP in response
 });
 
+// Validate OTP endpoint
 app.post('/validate', (req, res) => {
   const { otp } = req.body;
-  if (OTP_DB[otp] && !OTP_DB[otp].used) {
-    OTP_DB[otp].used = true;
-    res.json({ success: true, redirect: MEET_LINK });
+  if (validateOTP(otp, usedOTPs)) {
+    res.json({ success: true, redirect: 'https://meet.google.com/xyz-abcd-efg' });
   } else {
-    res.status(400).json({ success: false, message: 'Invalid or used OTP' });
+    res.json({ success: false, message: 'Invalid or already used OTP' });
   }
 });
 
-app.listen(5000, () => console.log('Server running on port 5000'));
+// Default route for testing
+app.get('/', (req, res) => {
+  res.send('✅ OTP Server is Running');
+});
+
+// Port configuration (required for Render)
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

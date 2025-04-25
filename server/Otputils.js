@@ -7,5 +7,13 @@ function generateOTP(length = 6) {
     return otp;
   }
   
-  module.exports = { generateOTP };
+  function validateOTP(otp, usedOTPs) {
+    if (usedOTPs.has(otp)) {
+      usedOTPs.delete(otp);
+      return true;
+    }
+    return false;
+  }
+  
+  module.exports = { generateOTP, validateOTP };
   

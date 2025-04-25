@@ -12,7 +12,7 @@
   <script>
     async function validateOTP() {
       const otp = document.getElementById('otp').value;
-      const res = await fetch('http://localhost:5000/validate', {
+      const res = await fetch('https://meet-access.onrender.com/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ otp })
